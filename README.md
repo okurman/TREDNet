@@ -66,3 +66,11 @@ TODO
 ### Contact
 
 First author of the manuscript.
+
+---------------------------------------------------------------------------------------------------
+### TODO
+
+- Add an interface for choosing the phase-two model (islets, HepG2, K562 etc.)
+  (Where to deposit the trained models?)
+- Add a module for delta/IEP score generation.  
+- (maybe) Add a multi-task version of phase-two 
