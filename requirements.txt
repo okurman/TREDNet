@@ -1,0 +1,7 @@
+biopython
+h5py
+numpy
+pybedtools
+tensorboard
+tensorflow
+
