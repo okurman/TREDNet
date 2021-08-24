@@ -57,6 +57,13 @@ python train_model.py
 
 ```
 
+To score the variants using the phase-two model:
+```
+python score_variant.py
+
+```
+
+
 ---------------------------------------------------------------------------------------------------
 ### How to cite:
 
