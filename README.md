@@ -63,7 +63,7 @@ Then run the `score_variant.py` command with `-use-kipoi` flag omitted, since by
 
 `./score_variant.py [options]` 
 
-######Options:
+Options:
 
 - `-vcf-file` : "VCF file containing variants for calculating the mutational scores."
 - `-phase-one-file` : "Phase one model weights (hdf5) file. Skip if using `-use-kipoi` flag"
