@@ -3,7 +3,7 @@ import numpy as np
 from os.path import join
 from Bio import SeqIO
 from pybedtools import BedTool
-from models import get_phase_one_model
+from .models import get_phase_one_model
 import h5py
 
 train_chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr10", "chr11", "chr12", "chr13",
@@ -17,7 +17,7 @@ EPOCH = 200
 BATCH_SIZE = 64
 GPUS = 4
 
-nucleotides = ['A', 'C', 'G', 'T']
+NUCLEOTIDES = np.array(['A', 'C', 'G', 'T'])
 
 
 def get_chrom2seq(hg19_fasta_file="/data/Dcode/common/hg19.fa", capitalize=True):
@@ -31,9 +31,12 @@ def get_chrom2seq(hg19_fasta_file="/data/Dcode/common/hg19.fa", capitalize=True)
 
 def seq2one_hot(seq):
 
-    d = np.array(nucleotides)
+    m = np.zeros((len(seq), 4), dtype=np.bool)
+    seq = seq.upper()
+    for i in range(len(seq)):
+        m[i, :] = (NUCLEOTIDES == seq[i])
 
-    return np.fromstring(str(seq.upper()), dtype='|S1')[:, np.newaxis] == d
+    return m
 
 
 def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_file, chrom2seq=None,

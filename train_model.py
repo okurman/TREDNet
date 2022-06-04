@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-data-file', dest="data_file", default="data/phase_two_dataset.hdf5")
 parser.add_argument('-save-dir', dest="save_dir", default="trained_model")

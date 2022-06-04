@@ -7,7 +7,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.constraints import max_norm
-from tensorflow.keras.utils import multi_gpu_model
+# from keras.utils import multi_gpu_model
+# from tensorflow.keras.utils import multi_gpu_model
 
 from sklearn import metrics
 
@@ -18,9 +19,6 @@ EPOCH = 200
 BATCH_SIZE = 64
 GPUS = 4
 MAX_NORM = 1
-
-nucleotides = ['A', 'C', 'G', 'T']
-FASTA_FILE = "/data/Dcode/common/hg19.fa"
 
 
 def define_model():
@@ -119,13 +117,13 @@ def run_model(data, save_dir, gpus=1):
             of.write("%f\t%f\t%f\n" % (fpr, tpr, thr))
 
 
-def get_models():
+def get_models(phase_one_file, phase_two_file):
 
-    phase_one_weights_file = "../data/phase_one_weights.hdf5"
-    phase_two_weights_file = "../data/phase_two_weights.hdf5"
+    # phase_one_weights_file = "../data/phase_one_weights.hdf5"
+    # phase_two_weights_file = "../data/phase_two_weights.hdf5"
 
-    model_1 = load_model(phase_one_weights_file)
-    model_2 = load_model(phase_two_weights_file)
+    model_1 = load_model(phase_one_file)
+    model_2 = load_model(phase_two_file)
 
     return [model_1, model_2]
 

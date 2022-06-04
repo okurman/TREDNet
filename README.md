@@ -25,59 +25,62 @@ of multiple tissues)
 
 TREDNet is developed using Python and uses keras/tensorflow for training DL models.
 
-It requires a CUDA-capable linux computer with a GPU node and >150GB memory.  
-
-Dependencies of TREDNet can be installed with pip as follows.
-```
-    pip install requirements.txt
-```
+It requires a CUDA-capable linux computer with a GPU node and >150GB memory for training the models from scratch. 
+For running precidtions having a GPU machine is recommended but not required. 
 
 Data preparation step requires:
   - GRCh37/hg19 assembly of the human genome. The fasta file can be downloaded from:
-https://hgdownload.soe.ucsc.edu/downloads.html
-  - Pre-trained model of the phase-one. Download the archive file:  https://ftp.ncbi.nlm.nih.gov/pub/Dcode/TREDNet/TREDNet_models_bundle.tar.gz
-    Uncompress the files to the `data/` directory.
 
 
 ---------------------------------------------------------------------------------------------------
 
 ### How to run
 
-Once all the requirements are met, create a dataset to be used for training the model.
-```
-python create_dataset.py
-```
+There are two ways to run predictions on input sequences:
 
-It needs a set of enhancers and control regions. By default, it will use the example sets of 
-`data/E118.H3K27ac.enhancers.bed` and `data/E118.H3K27ac.controls.bed`. Supply your own enhancer and control sets' bed files if necessary.
+#### Kipoi database
+TREDNet models are deposited in the Kipoi database:
+http://kipoi.org/models/TREDNet/
 
-Once the dataset is created, train the model with:
+Easiest way is to run the model through Kipoi interface. To do so, install the `kipoi` package first:
 ```
-python train_model.py
-
+pip install kipoi
 ```
 
-To score the variants using the phase-two model:
-```
-python score_variant.py
+Then use the `-use-kipoi` flag when running the `score_variant.py` command. When you run the command for the first time, Kipoi package will download the models of two phases. 
 
+#### Local model
+If Kipoi proves to be too much of an overhead, run: `bash data_download.sh` script to download the models. The models will be downloaded to `./data` directory. 
+
+Dependencies of TREDNet can be installed with pip as follows.
+```
+    pip install requirements.txt
 ```
 
+Then run the `score_variant.py` command with `-use-kipoi` flag omitted, since by default it is set to `False`. 
+
+#### Run the command"
+
+`./score_variant.py [options]` 
+
+######Options:
+
+- `-vcf-file` : "VCF file containing variants for calculating the mutational scores."
+- `-phase-one-file` : "Phase one model weights (hdf5) file. Skip if using `-use-kipoi` flag"
+- `-phase-two-name` : "Phase two model's cell name. Allowed options: islet, HepG2, K562"
+- `-save-file` : "File to save the scores"
+- `-hg19-fasta` : "Fasta file to hg19 assembly"
+- `-score-delta` : "Generate delta scores"
+- `-score-iep` : "Generate IEP scores"
+- `-use-kipoi` : "Use Kipoi models for running the models"
 
 ---------------------------------------------------------------------------------------------------
 ### How to cite:
 
-TODO
+https://medrxiv.org/cgi/content/short/2022.05.13.22275035v1
 
 ---------------------------------------------------------------------------------------------------
 ### Contact
 
-First author of the manuscript.
+Open an issue on this GitHub repo or send an email to the first author of the publication.  
 
----------------------------------------------------------------------------------------------------
-### TODO
-
-- Add an interface for choosing the phase-two model (islets, HepG2, K562 etc.)
-  (Where to deposit the trained models?)
-- Add a module for delta/IEP score generation.  
-- (maybe) Add a multi-task version of phase-two 
