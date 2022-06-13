@@ -54,7 +54,6 @@ class Model:
         return Y
 
 
-
 def extract_deltas_for_enhancer(r, model, r_seq, mutation_window_range=[0, 2000]):
 
     r_seq = r_seq.upper()

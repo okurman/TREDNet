@@ -75,6 +75,22 @@ Options:
 - `-use-kipoi` : "Use Kipoi models for running the models"
 
 ---------------------------------------------------------------------------------------------------
+
+### Run PAS/DAS detection
+
+There are two ways to run predictions on input sequences:
+
+PAS/DAS detection requires pre-generated delta scores. Input file required in h5 format. 
+
+Then run the `peak_detection/annotate.py`  
+
+#### Run the command"
+
+`peak_detection/annotate.py delta_file model_dir save_file` 
+
+
+
+---------------------------------------------------------------------------------------------------
 ### How to cite:
 
 https://medrxiv.org/cgi/content/short/2022.05.13.22275035v1
