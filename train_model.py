@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 
+import h5py
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-data-file', dest="data_file", default="data/phase_two_dataset.hdf5")
@@ -25,11 +26,12 @@ else:
 from src import models
 from src import data_prep
 
-print("Loading the dataset from:", data_file)
-data = data_prep.load_dataset(data_file)
+# print("Loading the dataset from:", data_file)
+# data = data_prep.load_dataset(data_file)
 
 print("Launching the training of model")
 print("Model files and performance evaluation results will be written in:")
 print("        " + save_dir)
-models.run_model(data, save_dir)
+with h5py.File(data_file, "r") as data:
+    models.run_model(data, save_dir)
 

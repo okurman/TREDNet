@@ -81,10 +81,10 @@ def run_model(data, save_dir, gpus=1):
                batch_size=BATCH_SIZE * GPUS,
                epochs=EPOCH,
                validation_data=(X_validation, Y_validation),
-               shuffle=True,
+               shuffle="batch",
                callbacks=_callbacks)
 
-    Y_pred = model.predict(X_test)
+    Y_pred = model.predict(X_test, batch_size=BATCH_SIZE*GPUS)
 
     auc = metrics.roc_auc_score(Y_test, Y_pred)
 
@@ -104,7 +104,7 @@ def run_model(data, save_dir, gpus=1):
 
     sort_ix = np.argsort(np.abs(fprs - 0.01))
     fpr1_thr = thrs[sort_ix[0]]
-
+    
     with open(os.path.join(save_dir, "fpr_threshold_scores.txt"), "w") as of:
         of.write("10 \t %f\n" % fpr10_thr)
         of.write("5 \t %f\n" % fpr5_thr)
