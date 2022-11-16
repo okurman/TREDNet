@@ -88,8 +88,6 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
 
     tmp_file = tempfile.NamedTemporaryFile(prefix="/data/Dcode/common/tmp.TREDnet.", suffix=".hdf5")
     ph1_data = h5py.File(tmp_file.name, "w")
-    # tmp_file = "/data/Dcode/common/tmp.TREDnet.hdf5"
-    # ph1_data = h5py.File(tmp_file, "w")
     ph2_data = h5py.File(dataset_save_file, "w")
 
     print("Writing the regions to one-hot\n")
@@ -167,7 +165,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         parser.print_help()
         sys.exit()
-
+    
     args = parser.parse_args()
 
     pos_file = args.pos_file
