@@ -50,16 +50,16 @@ def is_interactive():
 
 
 def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_file, chrom2seq=None,
-                                      model=None):
+                                      model=None, phase_one_weights_file=None, hg19_file=None):
 
     if not model:
         print("Loading the phase_one model\n")
-        model = get_phase_one_model()
+        model = get_phase_one_model(phase_one_weights_file)
         # return model
 
     if not chrom2seq:
         print("Loading hg19 fasta into memory\n")
-        chrom2seq = get_chrom2seq()
+        chrom2seq = get_chrom2seq(hg19_file)
         # return chrom2seq
 
     print("Splitting the regions to train/val/test\n")

@@ -137,7 +137,7 @@ def get_models(phase_one_file, phase_two_file):
     return [model_1, model_2]
 
 
-def get_phase_one_model(weights_file="../data/phase_one_weights.hdf5"):
+def get_phase_one_model(weights_file):
 
     model = load_model(weights_file)
 
