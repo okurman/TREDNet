@@ -1,12 +1,21 @@
 import os
 import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
-from tensorflow.keras.optimizers import Adadelta
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.constraints import max_norm
+
+from keras.models import load_model
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.optimizers import Adadelta
+from keras.models import Sequential
+from keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten
+from keras.layers import BatchNormalization
+from keras.constraints import max_norm
+
+# from tensorflow.keras.models import load_model
+# from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+# from tensorflow.keras.optimizers import Adadelta
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten
+# from tensorflow.keras.layers import BatchNormalization
+# from tensorflow.keras.constraints import max_norm
 # from keras.utils import multi_gpu_model
 # from tensorflow.keras.utils import multi_gpu_model
 
@@ -104,7 +113,7 @@ def run_model(data, save_dir, gpus=1):
 
     sort_ix = np.argsort(np.abs(fprs - 0.01))
     fpr1_thr = thrs[sort_ix[0]]
-    
+
     with open(os.path.join(save_dir, "fpr_threshold_scores.txt"), "w") as of:
         of.write("10 \t %f\n" % fpr10_thr)
         of.write("5 \t %f\n" % fpr5_thr)
@@ -128,11 +137,9 @@ def get_models(phase_one_file, phase_two_file):
     return [model_1, model_2]
 
 
-def get_phase_one_model():
+def get_phase_one_model(weights_file="../data/phase_one_weights.hdf5"):
 
-    phase_one_weights_file = "../data/phase_one_weights.hdf5"
-
-    model = load_model(phase_one_weights_file)
+    model = load_model(weights_file)
 
     return model
 

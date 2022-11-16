@@ -1,10 +1,12 @@
+import argparse
 import os
+import sys
 import numpy as np
-from os.path import join
 from Bio import SeqIO
 from pybedtools import BedTool
-from .models import get_phase_one_model
+from models import get_phase_one_model
 import h5py
+import tempfile
 
 train_chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr10", "chr11", "chr12", "chr13",
                      "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22"]
@@ -31,7 +33,7 @@ def get_chrom2seq(hg19_fasta_file="/data/Dcode/common/hg19.fa", capitalize=True)
 
 def seq2one_hot(seq):
 
-    m = np.zeros((len(seq), 4), dtype=np.bool)
+    m = np.zeros((len(seq), 4), dtype=bool)
     seq = seq.upper()
     for i in range(len(seq)):
         m[i, :] = (NUCLEOTIDES == seq[i])
@@ -39,20 +41,28 @@ def seq2one_hot(seq):
     return m
 
 
+def is_interactive():
+
+    if 'ipykernel' in sys.modules or 'IPython' in sys.modules:
+        return True
+    else:
+        return False
+
+
 def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_file, chrom2seq=None,
                                       model=None):
 
     if not model:
-        print("Loading the phase_one model")
+        print("Loading the phase_one model\n")
         model = get_phase_one_model()
         # return model
 
     if not chrom2seq:
-        print("Loading hg19 fasta into memory")
+        print("Loading hg19 fasta into memory\n")
         chrom2seq = get_chrom2seq()
         # return chrom2seq
 
-    print("Generating the positive dataset")
+    print("Splitting the regions to train/val/test\n")
 
     pos_beds = list(BedTool(positive_bed_file))
     neg_beds = list(BedTool(negative_bed_file))
@@ -66,96 +76,67 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
             if not r.length == INPUT_LENGTH:
                 r.stop += (INPUT_LENGTH - r.length)
 
-    pos_train_bed = [r for r in pos_beds if r.chrom in train_chromosomes]
-    pos_val_bed = [r for r in pos_beds if r.chrom in validation_chromosomes]
-    pos_test_bed = [r for r in pos_beds if r.chrom in test_chromosomes]
+    pos_beds_split = list()
+    pos_beds_split.append([r for r in pos_beds if r.chrom in train_chromosomes])
+    pos_beds_split.append([r for r in pos_beds if r.chrom in validation_chromosomes])
+    pos_beds_split.append([r for r in pos_beds if r.chrom in test_chromosomes])
 
-    pos_train_data = []
-    pos_val_data = []
-    pos_test_data = []
+    neg_beds_split = list()
+    neg_beds_split.append([r for r in neg_beds if r.chrom in train_chromosomes])
+    neg_beds_split.append([r for r in neg_beds if r.chrom in validation_chromosomes])
+    neg_beds_split.append([r for r in neg_beds if r.chrom in test_chromosomes])
 
-    for bed_list, data_list in zip([pos_train_bed, pos_val_bed, pos_test_bed],
-                                   [pos_train_data, pos_val_data, pos_test_data]):
+    tmp_file = tempfile.NamedTemporaryFile(prefix="/data/Dcode/common/tmp.TREDnet.", suffix=".hdf5")
+    ph1_data = h5py.File(tmp_file.name, "w")
+    # tmp_file = "/data/Dcode/common/tmp.TREDnet.hdf5"
+    # ph1_data = h5py.File(tmp_file, "w")
+    ph2_data = h5py.File(dataset_save_file, "w")
 
-        for r in bed_list:
-            _seq = chrom2seq[r.chrom][r.start:r.stop]
-            if not len(_seq) == 2000:
-                continue
-            _vector = seq2one_hot(_seq)
-            data_list.append(_vector)
+    print("Writing the regions to one-hot\n")
+    for name, pos_beds, neg_beds in zip(["train", "val", "test"],
+                                         pos_beds_split,
+                                         neg_beds_split):
 
-    print("Generating the negative dataset")
+        total_length = len(pos_beds) + len(neg_beds)
+        print(" %s  size: %d" % (name, total_length))
+        data = ph1_data.create_dataset(name="%s_data" % name, shape=(total_length, 2000, 4), dtype=bool)
+        labels = ph2_data.create_dataset(name="%s_labels" % name, shape=(total_length, 1), dtype=int, compression="gzip")
 
-    neg_train_bed = [r for r in neg_beds if r.chrom in train_chromosomes]
-    neg_val_bed = [r for r in neg_beds if r.chrom in validation_chromosomes]
-    neg_test_bed = [r for r in neg_beds if r.chrom in test_chromosomes]
+        cnt = -1
+        for label, beds in zip([1, 0], [pos_beds, neg_beds]):
+            for r in beds:
+                cnt += 1
 
-    neg_train_data = []
-    neg_val_data = []
-    neg_test_data = []
+                if cnt % 50000 == 0:
+                    print("   progress: %10d / %10d" % (cnt, total_length))
 
-    for bed_list, data_list in zip([neg_train_bed, neg_val_bed, neg_test_bed],
-                                   [neg_train_data, neg_val_data, neg_test_data]):
+                _seq = chrom2seq[r.chrom][r.start:r.stop]
+                if not len(_seq) == 2000:
+                    print("Skipping the regions with <2kb:", r)
+                    continue
+                _vector = seq2one_hot(_seq)
 
-        for r in bed_list:
-            _seq = chrom2seq[r.chrom][r.start:r.stop]
-            if not len(_seq) == 2000:
-                continue
-            _vector = seq2one_hot(_seq)
-            data_list.append(_vector)
+                data[cnt, :, :] = _vector
+                labels[cnt] = label
 
-    print("Merging positive and negative to single matrices")
-    print("Positive training set")
-    pos_train_data_matrix = np.zeros((len(pos_train_data), INPUT_LENGTH, 4))
-    for i in range(len(pos_train_data)):
-        pos_train_data_matrix[i, :, :] = pos_train_data[i]
-    print("Positive validation set")
-    pos_val_data_matrix = np.zeros((len(pos_val_data), INPUT_LENGTH, 4))
-    for i in range(len(pos_val_data)):
-        pos_val_data_matrix[i, :, :] = pos_val_data[i]
-    print("Positive test set")
-    pos_test_data_matrix = np.zeros((len(pos_test_data), INPUT_LENGTH, 4))
-    for i in range(len(pos_test_data)):
-        pos_test_data_matrix[i, :, :] = pos_test_data[i]
+    print("\nRunning predictions on one-hot data")
+    for name in ["train_data", "val_data", "test_data"]:
 
-    print("Negative training set")
-    neg_train_data_matrix = np.zeros((len(neg_train_data), INPUT_LENGTH, 4))
-    for i in range(len(neg_train_data)):
-        neg_train_data_matrix[i, :, :] = neg_train_data[i]
-    print("Negative validation set")
-    neg_val_data_matrix = np.zeros((len(neg_val_data), INPUT_LENGTH, 4))
-    for i in range(len(neg_val_data)):
-        neg_val_data_matrix[i, :, :] = neg_val_data[i]
-    print("Negative test set")
-    neg_test_data_matrix = np.zeros((len(neg_test_data), INPUT_LENGTH, 4))
-    for i in range(len(neg_test_data)):
-        neg_test_data_matrix[i, :, :] = neg_test_data[i]
+        print(name)
 
-    print("Stacking up the positive and negative set matrices")
-    test_data = np.vstack((pos_test_data_matrix, neg_test_data_matrix))
-    test_labels = np.concatenate((np.ones(len(pos_test_data)), np.zeros(len(neg_test_data))))
-    train_data = np.vstack((pos_train_data_matrix, neg_train_data_matrix))
-    train_labels = np.concatenate((np.ones(len(pos_train_data)), np.zeros(len(neg_train_data))))
-    val_data = np.vstack((pos_val_data_matrix, neg_val_data_matrix))
-    val_labels = np.concatenate((np.ones(len(pos_val_data)), np.zeros(len(neg_val_data))))
+        in_data = ph1_data[name]
+        out_data = ph2_data.create_dataset(name=name, shape=(in_data.shape[0], 1924, 1), compression="gzip")
 
-    print("Running predictions on phase-one model")
-    test_data = model.predict(test_data)
-    train_data = model.predict(train_data)
-    val_data = model.predict(val_data)
+        chunk_size = 50000
 
-    print("Saving to file:", dataset_save_file)
+        for i in range(0, in_data.shape[0], chunk_size):
+            print("Batch  %d / %d" % (i/chunk_size, in_data.shape[0]/chunk_size))
+            chunk_in = in_data[i: i + chunk_size, :, :]
+            chunk_out = model.predict(chunk_in, verbose=1 if is_interactive() else 2)
+            out_data[i: i + chunk_size, :, :] = chunk_out[..., np.newaxis]
 
-    with h5py.File(dataset_save_file, "w") as of:
-        print("Test data")
-        of.create_dataset(name="test_data", data=test_data, compression="gzip")
-        of.create_dataset(name="test_labels", data=test_labels, compression="gzip")
-        print("Train data")
-        of.create_dataset(name="train_data", data=train_data, compression="gzip")
-        of.create_dataset(name="train_labels", data=train_labels, compression="gzip")
-        print("Validation data")
-        of.create_dataset(name="val_data", data=val_data, compression="gzip")
-        of.create_dataset(name="val_labels", data=val_labels, compression="gzip")
+    ph1_data.close()
+    ph2_data.close()
 
 
 def load_dataset(data_file):
@@ -166,8 +147,43 @@ def load_dataset(data_file):
         for _key in inf:
             data[_key] = inf[_key][()]
 
-    data["train_data"] = data["train_data"][..., np.newaxis]
-    data["test_data"] = data["test_data"][..., np.newaxis]
-    data["val_data"] = data["val_data"][..., np.newaxis]
+    if len(data["train_data"].shape) == 2:
+        data["train_data"] = data["train_data"][..., np.newaxis]
+        data["test_data"] = data["test_data"][..., np.newaxis]
+        data["val_data"] = data["val_data"][..., np.newaxis]
 
     return data
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Create dataset for phase two")
+    parser.add_argument('-pos-file', dest="pos_file", required=True, help="Positive regions bed file")
+    parser.add_argument('-neg-file', dest="neg_file", required=True, help="Control regions bed file")
+    parser.add_argument('-save-file', dest="save_file", required=True, help="Dataset file (.hdf5) to save")
+    parser.add_argument('-phase-one-weights', dest="phase_one_weights", default="../data/phase_one_weights.hdf5",
+                        help="Weights file of the phase one model")
+
+    if len(sys.argv) < 4:
+        parser.print_help()
+        sys.exit()
+
+    args = parser.parse_args()
+
+    pos_file = args.pos_file
+    neg_file = args.neg_file
+    save_file = args.save_file
+
+    if not os.path.exists(pos_file):
+        print("Data file not found: %s " % pos_file)
+        sys.exit()
+
+    if not os.path.exists(neg_file):
+        print("Data file not found: %s" % neg_file)
+        sys.exit()
+
+    if os.path.exists(save_file):
+        print("Data save file already exists: %s " % save_file)
+        sys.exit()
+
+    create_dataset_phase_two(pos_file, neg_file, save_file)
