@@ -22,7 +22,7 @@ GPUS = 4
 NUCLEOTIDES = np.array(['A', 'C', 'G', 'T'])
 
 
-def get_chrom2seq(hg19_fasta_file="/data/Dcode/common/hg19.fa", capitalize=True):
+def get_chrom2seq(hg19_fasta_file="hg19.fa", capitalize=True):
 
     chrom2seq = {}
     for seq in SeqIO.parse(hg19_fasta_file, "fasta"):

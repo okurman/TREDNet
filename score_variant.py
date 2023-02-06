@@ -29,19 +29,15 @@ class Model:
                 phase_two_file = join("data/TREDNet_weights_phase_two_islets.hdf5")
             else:
                 phase_two_file = join("data/TREDNet_weights_phase_two_%s.hdf5" % args.phase_two_name)
-
             phase_one_file = "data/TREDNet_weights_phase_one.hdf5"
-
             if not exists(phase_one_file):
                 print("The phase-one model file doesn't exist: %s" % phase_one_file)
                 print("Download the model using data_download.sh script first and make tha the file exists.")
                 sys.exit()
-
             if not exists(phase_two_file):
                 print("The phase-two model file doesn't exist: %s" % phase_two_file)
                 print("Download the model using data_download.sh script first and make tha the file exists.")
                 sys.exit()
-
             self.model = get_models(phase_one_file, phase_two_file)
 
     def predict(self, X):

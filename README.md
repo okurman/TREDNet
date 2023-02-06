@@ -100,9 +100,3 @@ https://medrxiv.org/cgi/content/short/2022.05.13.22275035v1
 
 Open an issue on this GitHub repo or send an email to the first author of the publication.  
 
----------------------------------------------------------------------------------------------------
-### TODO
-
-- Update the Singularity container and move the code to py3
-- Make it runnable without container
-- Parametrize the data files (models, weights etc.) 
