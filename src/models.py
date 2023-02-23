@@ -7,6 +7,7 @@ from keras.optimizers import Adadelta
 from keras.models import Sequential
 from keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten
 from keras.layers import BatchNormalization
+from keras.regularizers import l1_l2
 from keras.constraints import max_norm
 
 # from tensorflow.keras.models import load_model
@@ -38,6 +39,7 @@ def define_model():
                      kernel_size=4,
                      strides=1,
                      activation="relu",
+                     kernel_regularizer=l1_l2(0.00001, 0.001),
                      kernel_constraint=max_norm(MAX_NORM)))
     model.add(BatchNormalization())
     model.add(MaxPooling1D(pool_size=2))
@@ -47,6 +49,7 @@ def define_model():
                      kernel_size=2,
                      strides=1,
                      activation="relu",
+                     kernel_regularizer=l1_l2(0.00001, 0.001),
                      kernel_constraint=max_norm(MAX_NORM)))
     model.add(Dropout(0.4))
     model.add(Flatten())
@@ -55,6 +58,7 @@ def define_model():
     model.add(Dense(units=1, activation="sigmoid"))
 
     return model
+
 
 
 def run_model(data, save_dir, gpus=1):

@@ -165,7 +165,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         parser.print_help()
         sys.exit()
-    
+
     args = parser.parse_args()
 
     pos_file = args.pos_file
