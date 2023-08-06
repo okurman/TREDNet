@@ -19,27 +19,6 @@ EPOCH = 200
 BATCH_SIZE = 64
 GPUS = 4
 
-NUCLEOTIDES = np.array(['A', 'C', 'G', 'T'])
-
-
-def get_chrom2seq(hg19_fasta_file="hg19.fa", capitalize=True):
-
-    chrom2seq = {}
-    for seq in SeqIO.parse(hg19_fasta_file, "fasta"):
-        chrom2seq[seq.description.split()[0]] = seq.seq.upper() if capitalize else seq.seq
-
-    return chrom2seq
-
-
-def seq2one_hot(seq):
-
-    m = np.zeros((len(seq), 4), dtype=bool)
-    seq = seq.upper()
-    for i in range(len(seq)):
-        m[i, :] = (NUCLEOTIDES == seq[i])
-
-    return m
-
 
 def is_interactive():
 
@@ -105,7 +84,7 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
             for r in beds:
                 cnt += 1
 
-                if cnt % 50000 == 0:
+                if cnt % 1000 == 0:
                     print("   progress: %10d / %10d" % (cnt, total_length))
 
                 _seq = chrom2seq[r.chrom][r.start:r.stop]
@@ -125,7 +104,7 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
         in_data = ph1_data[name]
         out_data = ph2_data.create_dataset(name=name, shape=(in_data.shape[0], 1924, 1), compression="gzip")
 
-        chunk_size = 50000
+        chunk_size = 1000
 
         for i in range(0, in_data.shape[0], chunk_size):
             print("Batch  %d / %d" % (i/chunk_size, in_data.shape[0]/chunk_size))

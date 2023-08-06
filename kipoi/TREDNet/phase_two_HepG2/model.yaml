@@ -1,8 +1,8 @@
 defined_as: model.PhaseTwoModel
 args:
     weights:
-        url: https://zenodo.org/record/6463875/files/TREDNet_weights_phase_two_HepG2.hdf5
-        md5: 30c4ed98c0b5479322647bb9c16755b3
+        url: https://zenodo.org/record/8161621/files/TREDNet_weights_phase_two_HepG2.hdf5
+        md5: 8da5c7d5a5f5b6399d10650698ff20c3
 
 default_dataloader:
     defined_as: kipoiseq.dataloaders.SeqIntervalDl
@@ -19,7 +19,7 @@ info: # General information about the model
         - name: Sanjarbek Hudaiberdiev
           github: okurman
           email: kyrgyzbala@gmail.com
-    doc: Model predicting tissue-specific enhancer scores.
+    doc: Model predicting tissue-specific enhancer scores
     cite_as: https://medrxiv.org/cgi/content/short/2022.05.13.22275035v1
     trained_on: Dataset on autosomal chromosomes. held-out chromosomes chr7,8,9
     license: CC-BY-ND # Software License - if not set defaults to MIT
@@ -27,14 +27,14 @@ info: # General information about the model
 
 dependencies:
     conda: # install via conda
-      - python
-      - h5py
-      - pip
+        - python=3.9
+        - h5py=3.6
+        - pip=21.2.4
+        - keras=2.8
+        - tensorflow=2.8
     pip:   # install via pip
-      - keras>=2.0.4
-      - tensorflow>=1.0
-      - sorted-nearest==0.0.33
-      - protobuf==3.20
+        - protobuf==3.20
+
 
 schema:  # Model schema. The schema defintion is essential for kipoi plug-ins to work.
     inputs:  # input = single numpy array

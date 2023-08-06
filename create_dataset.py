@@ -8,12 +8,12 @@ if len(sys.argv) < 4:
     parser.print_help()
     sys.exit()
 
-parser.add_argument('-pos-bed', dest="pos_bed_file", default="data/E118.H3K27ac.enhancers.bed")
-parser.add_argument('-neg-bed', dest="neg_bed_file", default="data/E118.H3K27ac.controls.bed")
-parser.add_argument('-save-file', dest="save_file", default="data/phase_two_dataset.hdf5")
-parser.add_argument('-hg19-fasta', dest="hg19_fasta_file", default="/data/Dcode/common/hg19.fa")
+parser.add_argument('-pos-bed', dest="pos_bed_file", default="data/E118.H3K27ac.enhancers.bed", required=True)
+parser.add_argument('-neg-bed', dest="neg_bed_file", default="data/E118.H3K27ac.controls.bed", required=True)
+parser.add_argument('-save-file', dest="save_file", default="data/phase_two_dataset.hdf5", required=True)
+parser.add_argument('-hg19-fasta', dest="hg19_fasta_file", required=True)
 parser.add_argument('-phase-one-weights', dest="phase_one_weights", default="data/phase_one_weights.hdf5",
-                        help="Weights file of the phase one model")
+                        help="Weights file of the phase one model", required=True)
 
 args = parser.parse_args()
 

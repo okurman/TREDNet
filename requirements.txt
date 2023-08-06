@@ -1,7 +1,14 @@
 
-biopython==1.79
-h5py==2.10.0
-numpy==1.22.3
-pybedtools==0.9.0
-tensorflow==2.4.1
+keras==2.1.2
+tensorflow==1.4.1
+biopython
+pybedtools
+PyVCF
+h5py
+numpy
+pybedtools
+scikit-learn
+pandas
+seaborn
+
 
