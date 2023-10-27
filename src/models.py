@@ -13,7 +13,6 @@ from src.tools import generate_plot_history
 
 from sklearn import metrics
 
-
 INPUT_LENGTH = 1924
 EPOCH = 200
 PATIENCE = 20

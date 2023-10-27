@@ -1,14 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
 import argparse
 import sys
-from os.path import join, exists
+import os
 
-import kipoi
-import vcf
-from src.data_prep import seq2one_hot
-from src.models import run_two_phases, get_models
+from src.tools import seq2one_hot
+from src.tools import run_two_phases
+from src.tools import get_models
 import numpy as np
 from Bio import SeqIO
 
@@ -19,10 +18,10 @@ class Model:
 
     def __init__(self, args):
 
-        if not exists(args.phase_one_file):
+        if not os.path.exists(args.phase_one_file):
             print("The phase-one model file doesn't exist: %s" % args.phase_one_file)
             sys.exit()
-        if not exists(args.phase_two_file):
+        if not os.path.exists(args.phase_two_file):
             print("The phase-two model file doesn't exist: %s" % args.phase_two_file)
             sys.exit()
         self.model = get_models(args.phase_one_file, args.phase_two_file)

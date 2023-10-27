@@ -4,10 +4,6 @@ import sys
 
 parser = argparse.ArgumentParser(description="Create dataset for phase two")
 
-if len(sys.argv) < 4:
-    parser.print_help()
-    sys.exit()
-
 parser.add_argument('-pos-bed', dest="pos_bed_file", default="data/E118.H3K27ac.enhancers.bed", required=True)
 parser.add_argument('-neg-bed', dest="neg_bed_file", default="data/E118.H3K27ac.controls.bed", required=True)
 parser.add_argument('-save-file', dest="save_file", default="data/phase_two_dataset.hdf5", required=True)

@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from Bio import SeqIO
 from pybedtools import BedTool
-from models import get_phase_one_model
+import tools
 import h5py
 import tempfile
 
@@ -33,12 +33,12 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
 
     if not model:
         print("Loading the phase_one model\n")
-        model = get_phase_one_model(phase_one_weights_file)
+        model = tools.get_phase_one_model(phase_one_weights_file)
         # return model
 
     if not chrom2seq:
         print("Loading hg19 fasta into memory\n")
-        chrom2seq = get_chrom2seq(hg19_file)
+        chrom2seq = tools.get_chrom2seq(hg19_file)
         # return chrom2seq
 
     print("Splitting the regions to train/val/test\n")
@@ -91,7 +91,7 @@ def create_dataset_phase_two(positive_bed_file, negative_bed_file, dataset_save_
                 if not len(_seq) == 2000:
                     print("Skipping the regions with <2kb:", r)
                     continue
-                _vector = seq2one_hot(_seq)
+                _vector = tools.seq2one_hot(_seq)
 
                 data[cnt, :, :] = _vector
                 labels[cnt] = label
