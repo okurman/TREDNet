@@ -97,7 +97,7 @@ TREDNet is now published at PNAS:
 https://www.pnas.org/doi/10.1073/pnas.2206612120
 
 If you use TREDNet, please cite as:\
-Sanjarbek Hudaiberdiev, D. Leland Taylor, Wei Song, Narisu Narisu, Redwan M. Bhuiyan, Henry J. Taylor, Xuming Tang, Tingfen Yan, Amy J. Swift, Lori L. Bonnycastle, DIAMANTE Consortium, Shuibing Chen, Michael L. Stitzel, Michael R. Erdos, Ivan Ovcharenko, and Francis S. Collins
+Sanjarbek Hudaiberdiev, D. Leland Taylor, Wei Song, Narisu Narisu, Redwan M. Bhuiyan, Henry J. Taylor, Xuming Tang, Tingfen Yan, Amy J. Swift, Lori L. Bonnycastle, DIAMANTE Consortium, Shuibing Chen, Michael L. Stitzel, Michael R. Erdos, Ivan Ovcharenko, and Francis S. Collins\
 _"Modeling islet enhancers using deep learning identifies candidate causal variants at loci associated with T2D and glycemic traits"_   PNAS 2023 120 (35) e2206612120. \
 DOI: https://doi.org/10.1073/pnas.2206612120
 
