@@ -5,3 +5,5 @@ biowulf_scripts/
 dev/
 TODO.md
 tmp/
+__pycache__/
+train_models/__pycache__/
