@@ -8,8 +8,8 @@ from os.path import join, exists
 import kipoi
 import vcf
 from pybedtools import BedTool
-from src.data_prep import seq2one_hot, get_chrom2seq
-from src.models import run_two_phases, get_models
+from lib.v1.data_prep import seq2one_hot, get_chrom2seq
+from lib.v1.models import run_two_phases, get_models
 from collections import defaultdict
 import numpy as np
 

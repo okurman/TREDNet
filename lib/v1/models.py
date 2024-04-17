@@ -9,7 +9,7 @@ from keras.layers import BatchNormalization
 from keras.regularizers import l1_l2
 from keras.constraints import max_norm
 from keras.utils import multi_gpu_model
-from src.tools import generate_plot_history
+from lib.v1.tools import generate_plot_history
 
 from sklearn import metrics
 

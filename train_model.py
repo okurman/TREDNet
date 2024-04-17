@@ -2,10 +2,8 @@ import argparse
 import os
 import sys
 import h5py
-import numpy
 
-from src import models
-
+from lib.v1 import models
 
 parser = argparse.ArgumentParser()
 

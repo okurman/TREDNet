@@ -5,9 +5,9 @@ import argparse
 import sys
 import os
 
-from src.tools import seq2one_hot
-from src.tools import run_two_phases
-from src.tools import get_models
+from lib.v1.tools import seq2one_hot
+from lib.v1.tools import run_two_phases
+from lib.v1.tools import get_models
 import numpy as np
 from Bio import SeqIO
 

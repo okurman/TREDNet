@@ -39,7 +39,7 @@ if os.path.exists(save_file):
     print("Select a different file name")
     sys.exit()
 
-from src import data_prep
+from lib.v1 import data_prep
 
 data_prep.create_dataset_phase_two(pos_bed_file,
                                    neg_bed_file,

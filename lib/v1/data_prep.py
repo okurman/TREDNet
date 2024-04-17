@@ -2,7 +2,6 @@ import argparse
 import os
 import sys
 import numpy as np
-from Bio import SeqIO
 from pybedtools import BedTool
 import tools
 import h5py

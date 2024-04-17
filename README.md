@@ -1,6 +1,8 @@
-# starting on a new base
----------------------------------
 # TREDNet
+TREDNet is now published at PNAS: https://www.pnas.org/doi/10.1073/pnas.2206612120
+
+---------------------------------------------------------------------------------------------------
+
 ### Regulatory region detection using two-phase deep neural networks
 
 TREDNet is a modular deep neural network architecture which allows building models to predict regulatory regions.
@@ -90,22 +92,16 @@ Then run the `peak_detection/annotate.py`
 
 `peak_detection/annotate.py delta_file model_dir save_file` 
 
-
-
 ---------------------------------------------------------------------------------------------------
 ### How to cite:
 
-TREDNet is now published at PNAS:
-https://www.pnas.org/doi/10.1073/pnas.2206612120
+#### Modeling islet enhancers using deep learning identifies candidate causal variants at loci associated with T2D and glycemic traits
+<span style="font-size:1em;"> Sanjarbek Hudaiberdiev, D. Leland Taylor, Wei Song, Narisu Narisu, Redwan M. Bhuiyan, Henry J. Taylor, Xuming Tang, Tingfen Yan, Amy J. Swift, Lori L. Bonnycastle, DIAMANTE Consortium, Shuibing Chen, Michael L. Stitzel, Michael R. Erdos, Ivan Ovcharenko, and Francis S. Collins </span>
 
-If you use TREDNet, please cite as:
-
-Sanjarbek Hudaiberdiev, D. Leland Taylor, Wei Song, Narisu Narisu, Redwan M. Bhuiyan, Henry J. Taylor, Xuming Tang, Tingfen Yan, Amy J. Swift, Lori L. Bonnycastle, DIAMANTE Consortium, Shuibing Chen, Michael L. Stitzel, Michael R. Erdos, Ivan Ovcharenko, and Francis S. Collins\
-_"Modeling islet enhancers using deep learning identifies candidate causal variants at loci associated with T2D and glycemic traits"_   PNAS 2023 120 (35) e2206612120. \
-DOI: https://doi.org/10.1073/pnas.2206612120
+Proceedings of National Academy of Science (PNAS) 2023 120 (35) e2206612120. DOI: 10.1073/pnas.2206612120
 
 ---------------------------------------------------------------------------------------------------
 ### Contact
 
-Open an issue on this GitHub repo or send an email to the first author of the publication.  
+Open an issue on this GitHub repo or email to the first author of the publication.  
 

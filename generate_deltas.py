@@ -12,11 +12,10 @@ from pybedtools import BedTool
 from collections import defaultdict
 import numpy as np
 
-from src.tools import seq2one_hot
-from src.tools import get_chrom2seq
-from src.tools import run_two_phases
-from src.tools import get_models
-from src.tools import generate_mutation_vectors
+from lib.v1.tools import get_chrom2seq
+from lib.v1.tools import run_two_phases
+from lib.v1.tools import get_models
+from lib.v1.tools import generate_mutation_vectors
 
 
 NUCLEOTIDES = ["A", "C", "G", "T"]
