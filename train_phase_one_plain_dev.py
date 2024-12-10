@@ -202,7 +202,6 @@ def run_validation(model, data_loader, device, criterion, max_iter=-1):
     model.eval()
 
     val_loss = 0
-    acc_list = []
     
     with tqdm(data_loader, unit="batch") as bar:
         bar.set_description(f"Validation")
@@ -215,13 +214,10 @@ def run_validation(model, data_loader, device, criterion, max_iter=-1):
             loss = criterion(y_pred, y)
 
             val_loss += loss.item()
-            batch_acc = (torch.sigmoid(y_pred).round() == y).float().mean()
-            acc_list.append(batch_acc.to("cpu"))
             
     val_loss /= len(data_loader)
-    acc = 100 * np.mean(acc_list)
 
-    return acc, val_loss
+    return val_loss
 
 
 def train_model(model, optimizer, train_loader, val_loader, device, args):
@@ -237,7 +233,10 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
     best_loss = 10**8
     
     history_file = os.path.join(model_dir, "history.tsv")
-    history = pd.DataFrame(columns=["epoch", "train_loss", "val_loss", "train_acc", "val_acc"])
+    if os.path.exists(history_file):
+        history = pd.read_csv(history_file, sep="\t")
+    else:
+        history = pd.DataFrame(columns=["epoch", "train_loss", "val_loss"])
     history.to_csv(history_file, sep="\t", index=False)
 
     model.to(device)
@@ -246,7 +245,6 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
         
         model.train()
         train_loss = 0
-        acc_list = []
         
         with tqdm(train_loader, unit="batch", position=0, leave=True) as bar:
             bar.set_description(f"Epoch {epoch}")
@@ -268,16 +266,12 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
 
                 train_loss += loss.item()
                 
-                batch_acc = (torch.sigmoid(y_pred).round() == y).float().mean()
-                acc_list.append(batch_acc.to("cpu"))
-
-                bar.set_postfix(loss=f"{float(loss):4.6f}", acc=f"{100 * batch_acc:2.2f}")
+                bar.set_postfix(loss=f"{float(loss):4.6f}")
 
         train_loss /= len(train_loader)
-        train_acc = 100 * np.mean(acc_list)
         
         with torch.no_grad():
-            val_acc, val_loss = run_validation(model, val_loader, device, criterion)
+            val_loss = run_validation(model, val_loader, device, criterion)
             # aurocs = get_auroc(model, val_loader, device)
             # val_auroc = aurocs.mean().numpy()
             # val_auroc = -1
@@ -285,7 +279,7 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
         print(f"tr loss: {train_loss:.8f} "
               f"val loss: {val_loss:.8f}. ")
         
-        history.loc[epoch] = [epoch, train_loss, val_loss, train_acc, val_acc]
+        history.loc[epoch] = [epoch, train_loss, val_loss]
         history.to_csv(history_file, sep="\t", index=False)
 
         if epoch == 0 or val_loss < best_loss:
@@ -329,17 +323,18 @@ def eval(args):
 
 def main(args):
 
-    model = PhaseOne(mp=args.mp, do=args.do)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    gpus = torch.cuda.device_count()
 
+    model = PhaseOne(mp=args.mp, do=args.do)
+    
     # print(model.net)
     # summary(model, (4, 1000))
-    # return 
-
-    gpus = torch.cuda.device_count()
+    
     if gpus > 1:
         model = nn.DataParallel(model)
+    
+    model.to(device)
     
     if not os.path.exists(args.d):
         os.mkdir(args.d)
@@ -374,8 +369,8 @@ def parse_args():
     parser.add_argument('-opt', choices=['SGD', 'Adam', 'Adadelta'], default="Adam")
     parser.add_argument('-lr', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('-l2', type=float, default=1e-4, help='L2 regularizer')
-    parser.add_argument('-do', type=float, default=0.2, help='Dropout')
-    
+    parser.add_argument('-do', type=float, default=0.3, help='Dropout')
+
     args = parser.parse_args()
     assert os.path.exists(args.d) and os.path.exists(args.f)
 
