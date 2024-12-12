@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from torcheval.metrics import BinaryBinnedAUROC
+from torcheval.metrics import BinaryBinnedAUROC, BinaryAUROC
 from torchsummary import summary
 from torch.amp import autocast, GradScaler
 import pandas as pd
@@ -25,8 +25,8 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 ## Hyper-parameters
 NUM_EPOCHS = 100
-BATCH_SIZE = 600
-EARLY_STOP_THRESH = 10
+BATCH_SIZE = 800
+EARLY_STOP_THRESH = 15
 
 
 torch.manual_seed(1024)
@@ -170,7 +170,7 @@ def get_auroc(model, data_loader, device, bins=20, on_cpu=False, max_iter=-1):
 
                 if on_cpu:
                     y = y.to("cpu")
-                    y_pred = y_pred.to("cpu")
+                    y_pred = torch.sigmoid(y_pred).to("cpu")
 
                 y_pool.append(y)
                 y_pred_pool.append(y_pred)
@@ -187,7 +187,10 @@ def get_auroc(model, data_loader, device, bins=20, on_cpu=False, max_iter=-1):
         for i in bar:
             _y = y[i, :]
             _y_pred = y_pred[i, :]
-            metric = BinaryBinnedAUROC(threshold=bins)
+            if bins == -1:
+                metric = BinaryAUROC()
+            else:
+                metric = BinaryBinnedAUROC(threshold=bins)
             metric.update(_y_pred, _y)
             (_auroc, _) = metric.compute()
             aurocs.append(_auroc)
@@ -282,8 +285,11 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
             # val_auroc = aurocs.mean().numpy()
             # val_auroc = -1
         
-        print(f"tr loss: {train_loss:.8f} "
-              f"val loss: {val_loss:.8f}. ")
+        print(f"Epoc: {epoch} "
+              f"tr loss: {train_loss:.8f} "
+              f"val loss: {val_loss:.8f}. "
+              f"tr acc: {train_acc:2.4f} "
+              f"val acc: {val_acc:2.4f}. ")
         
         history.loc[epoch] = [epoch, train_loss, val_loss, train_acc, val_acc]
         history.to_csv(history_file, sep="\t", index=False)
@@ -299,7 +305,9 @@ def train_model(model, optimizer, train_loader, val_loader, device, args):
         
         gc.collect()
 
-        print("\n\n")
+        # print("\n\n")
+    
+    print("Training completed!")
 
 
 def eval(args):
@@ -323,8 +331,13 @@ def eval(args):
     model.eval()
     model.to(device)
     
-    aurocs = get_auroc(model, test_loader, device)
+    aurocs = get_auroc(model, test_loader, device, bins=200)
     print("Test set auROC:", aurocs.mean())
+    
+    save_file = os.path.join(model_dir, "test_set.ROC.txt")
+    with open(save_file, "w") as of:
+        of.write(f"auROC \t{aurocs.mean()}\n")
+
 
 
 def main(args):
@@ -333,7 +346,10 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    # print(model.net)
+    print("===== Layers of built model: =====")
+    print("==================================")
+    print(model.net)
+    print("==================================\n")
     # summary(model, (4, 1000))
     # return 
 
@@ -371,11 +387,13 @@ def parse_args():
     parser.add_argument('-eval', action="store_true", help='Run evaluation of the trained model')
 
     parser.add_argument('-mp', type=int, default=0, help='Max pooling layer at the end')
-    parser.add_argument('-opt', choices=['SGD', 'Adam', 'Adadelta'], default="Adam")
     parser.add_argument('-lr', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('-l2', type=float, default=1e-4, help='L2 regularizer')
     parser.add_argument('-do', type=float, default=0.2, help='Dropout')
     
+    parser.add_argument('-opt', choices=['SGD', 'Adam', 'Adadelta'], default="Adam")
+    
+
     args = parser.parse_args()
     assert os.path.exists(args.d) and os.path.exists(args.f)
 
