@@ -23,7 +23,7 @@ import warnings
 warnings.filterwarnings("ignore")
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-## Hyper-parameters
+## Hyper-parameters 
 NUM_EPOCHS = 100
 BATCH_SIZE = 800
 EARLY_STOP_THRESH = 15
@@ -316,7 +316,7 @@ def eval(args):
 
     checkpoint_file = os.path.join(model_dir, "best_model.pt")
     assert os.path.exists(checkpoint_file)
-    
+
     data_file = args.f
     assert os.path.exists(data_file)
 
