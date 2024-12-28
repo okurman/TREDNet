@@ -26,13 +26,14 @@ import lightning as L
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import CSVLogger, TensorBoardLogger
 
+from lightning.pytorch import seed_everything
+seed_everything(1024, workers=True)
+
 
 ## Hyper-parameters
 NUM_EPOCHS = 100
 BATCH_SIZE = 1000
 EARLY_STOP_THRESH = 30
-
-
 torch.manual_seed(1024)
 
 
@@ -159,6 +160,7 @@ class PhaseOneLightning(L.LightningModule):
         loss = self.criterion(y_pred, y)
 
         self.log('train_loss', loss, prog_bar=True, on_step=False, on_epoch=True)
+        # self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=False)
 
         return loss
 
@@ -175,7 +177,10 @@ class PhaseOneLightning(L.LightningModule):
             optimizer = torch.optim.Adam(
                 self.parameters(), 
                 lr=self.hparams.learning_rate, 
-                weight_decay=self.hparams.weight_decay
+                weight_decay=self.hparams.weight_decay,
+                # defaulf value of 1e-08 caused NaN loss values when used with lr=0.1
+                # as a result of 16-bit mixed presicion training.
+                eps=1e-06 if self.hparams.learning_rate == 0.1 else 1e-08
             )
         elif self.hparams.optimizer == "SGD":
             optimizer = torch.optim.SGD(
@@ -204,7 +209,11 @@ class PhaseOneLightning(L.LightningModule):
         
         else:
 
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=5)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 
+                                                                   mode='min', 
+                                                                   factor=0.3, 
+                                                                   patience=5,
+                                                                   verbose=True)
 
             return {
                 "optimizer": optimizer,
@@ -240,7 +249,7 @@ def main(args):
         optimizer=args.opt
     )
     
-    dm = PhaseOneDataModule(args.f, batch_size=BATCH_SIZE)
+    data_module = PhaseOneDataModule(args.f, batch_size=BATCH_SIZE)
     
     early_stopping =  EarlyStopping(
         monitor='val_loss',
@@ -257,17 +266,22 @@ def main(args):
         mode='min'
     )
     
+    callbacks = [checkpoint_callback] if args.ne else [early_stopping, checkpoint_callback]
+
     csv_logger = CSVLogger(args.d, name="training_logs")
     tb_logger = TensorBoardLogger(args.d, name="training_logs")
     
     trainer = L.Trainer(
         max_epochs=NUM_EPOCHS,
         accelerator='auto',
+        strategy='ddp', # it is the default value.
         devices='auto',
-        callbacks=[early_stopping, checkpoint_callback],
+        callbacks=callbacks,
         logger=[tb_logger, csv_logger],
         precision='16-mixed',
-        log_every_n_steps=500
+        log_every_n_steps=500,
+        detect_anomaly=True,
+        deterministic=True
     )
     
     print("\n\n")
@@ -278,7 +292,7 @@ def main(args):
     print("\n\n")
 
     # Train the model
-    trainer.fit(model, dm)
+    trainer.fit(model, data_module)
 
 
 def get_auroc(model, data_loader, device, bins=20, on_cpu=False, max_iter=-1):
@@ -339,6 +353,17 @@ def eval(args):
     assert os.path.exists(args.d) and os.path.exists(args.f)
 
     checkpoint_file = os.path.join(args.d, "best_model.ckpt")
+    save_file = os.path.join(args.d, "test_set.ROC.txt")
+    
+    if not os.path.exists(checkpoint_file):
+        raise FileNotFoundError(f"Checkpoint file doesn't exist: \n {checkpoint_file}")
+
+    if os.path.exists(save_file):
+        checkpoint_mtime = os.path.getmtime(checkpoint_file)
+        aucs_mtime = os.path.getmtime(save_file)
+        if checkpoint_mtime < aucs_mtime:
+            print(f"No new model has been saved in best_model.ckpt since the {save_file} was generated")
+            return
     
     model = PhaseOneLightning.load_from_checkpoint(checkpoint_file)
     
@@ -352,7 +377,6 @@ def eval(args):
     aurocs = get_auroc(model, test_loader, device, bins=200)
     print("Test set auROC:", aurocs.mean())
     
-    save_file = os.path.join(args.d, "test_set.ROC.txt")
     with open(save_file, "w") as of:
         of.write(f"auROC \t{aurocs.mean()}\n")
 
@@ -369,8 +393,13 @@ def parse_args():
     parser.add_argument('-lr', type=float, default=1e-2, help='Learning rate')
     parser.add_argument('-l2', type=float, default=1e-5, help='L2 regularizer')
     parser.add_argument('-do', type=float, default=0.2, help='Dropout')
-    
+    parser.add_argument('-ne', action="store_true", help='Exclude early stopping callback from training')
+
     parser.add_argument('-opt', choices=['SGD', 'Adam', 'Adadelta'], default="Adam")
+    
+    if len(sys.argv) < 2:
+        parser.print_usage()
+        sys.exit(1)
 
     args = parser.parse_args()
     assert os.path.exists(args.d) and os.path.exists(args.f)
